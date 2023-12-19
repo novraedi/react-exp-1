@@ -1,24 +1,58 @@
-import logo from './logo.svg';
-import './App.css';
+import Header from "./components/Header";
+import HomePage from "./pages/HomePage";
+import Loading from "./components/Loading";
+import { useSelector, useDispatch } from "react-redux";
+import { useEffect } from "react";
+import { asyncUnsetAuthUser } from "./states/authUser/action";
+import { asyncPreloadProcess } from "./states/isPreload/action";
+import LoginPage from "./pages/LoginPage";
+import { Routes, Route } from "react-router-dom";
+import RegisterPage from "./pages/RegisterPage";
 
 function App() {
+  const { authUser = null, isPreload = false } = useSelector(
+    (states) => states
+  );
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(asyncPreloadProcess());
+  }, [dispatch]);
+
+  const onSignOut = () => {
+    dispatch(asyncUnsetAuthUser());
+  };
+
+  if (isPreload) {
+    return null;
+  }
+
+  if (authUser === null) {
+    return (
+      <>
+        <Loading />
+        <main>
+          <Routes>
+            <Route path="/*" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+          </Routes>
+        </main>
+      </>
+    );
+  }
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
+    <>
+      <header>
+        <Loading />
+        <Header authUser={authUser} onSignOut={onSignOut} />
       </header>
-    </div>
+      <main>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+        </Routes>
+      </main>
+    </>
   );
 }
 
